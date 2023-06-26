@@ -131,3 +131,23 @@ h1 {
   background-color: #e7123e;
   color: white;
 }
+.error-message p {
+  background-color: #e7123e;
+  color: white;
+}
+
+#output::-webkit-scrollbar {
+	width: 10px;
+}
+
+#output::-webkit-scrollbar-track {
+	background: #f1f1f1;
+}
+
+#output::-webkit-scrollbar-thumb {
+	background: #888;
+}
+
+#output::-webkit-scrollbar-thumb:hover {
+	background: #555;
+}
