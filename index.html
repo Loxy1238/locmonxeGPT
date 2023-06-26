@@ -10,9 +10,9 @@
 	<script src="https://code.responsivevoice.org/responsivevoice.js?key=TPtWZWdY"></script>
 </head> 
 <body>
+	<br> 
 	<br>
-	<br>
-	<div class="put messages-container" id="output"></div>
+	<div class="put messages-container" id="output" style="overflow:auto; max-height: 500px;"></div>
 	<br>
 	<div class="container">
 		<input placeholder="메세지를 입력하세요" id="prompt"></input>
@@ -23,26 +23,26 @@
 		</div>
 	</div>
 	<script>
-  
+
 
     const voiceButton = document.querySelector("#voiceButton");
     const promptInput = document.querySelector("#prompt");
-  
+
     if (window.SpeechRecognition || window.webkitSpeechRecognition) {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       const recognition = new SpeechRecognition();
-  
+
       voiceButton.addEventListener("click", () => {
         recognition.start();
         voiceButton.disabled = true;
       });
-  
+
       recognition.addEventListener("result", (event) => {
         const transcript = event.results[0][0].transcript;
         promptInput.value = transcript;
         document.querySelector("#submit").click(); // 메시지 자동 전송
       });
-  
+
       recognition.addEventListener("end", () => {
         voiceButton.disabled = false;
       });
@@ -51,9 +51,9 @@
       console.log("음성 인식 API가 지원되지 않습니다.");
     }
   </script>
-  
+
 	<script>
-		const API_KEY = "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";
+		const API_KEY = "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";
 		const model = "gpt-3.5-turbo";
 		const stop = [" 록몬스GPT유저:", " 록몬스GPT:"];
 		let chatHistory = "";
@@ -88,6 +88,15 @@
 			outputContainer.appendChild(messageDiv);
 
 			responsiveVoice.speak(input, "Korean Female", { onend: startResponse });
+			// "응답 중..." 메시지 생성
+			const waitingMessageDiv = document.createElement("div");
+			waitingMessageDiv.classList.add("message");
+			waitingMessageDiv.classList.add("bot-message");
+			const waitingMessageText = document.createElement("p");
+			waitingMessageText.innerText = "응답 중...";
+			waitingMessageDiv.appendChild(waitingMessageText);
+			outputContainer.appendChild(waitingMessageDiv);
+
 
 			async function startResponse() {
 				try {
@@ -121,7 +130,13 @@
 
 					chatHistory += "AI: " + responseText + "\n";
 
-					for (let i = 0; i < messages.length; i++) {
+					let i = 0;
+					const readMessage = async () => {
+						if (i >= messages.length) {
+							outputContainer.scrollTo({ top: outputContainer.scrollHeight, behavior: 'smooth' });
+							return;
+						}
+
 						await sleep(2000);
 						const msg = messages[i];
 						const messageDiv = document.createElement("div");
@@ -132,53 +147,15 @@
 						messageDiv.appendChild(messageText);
 						outputContainer.appendChild(messageDiv);
 						outputContainer.scrollTo({ top: outputContainer.scrollHeight, behavior: 'smooth' });
+						// 응답이 오면 "응답 중..." 메시지를 삭제합니다.
+						outputContainer.removeChild(waitingMessageDiv);
 
-						responsiveVoice.speak(msg, "Korean Female", { onend: continueSpeaking });
 
-						// Check if input is "너는 누구야?"
-						if (input === "너는 누구야?") {
-							const responseDiv = document.createElement("div");
-							responseDiv.classList.add("message");
-							responseDiv.classList.add("bot-message");
-							const responseText = document.createElement("p");
-							responseText.innerText = "로그인 없는 편안함 록몬스GPT입니다";
-							responseDiv.appendChild(responseText);
-							outputContainer.appendChild(responseDiv);
-							outputContainer.scrollTo({ top: outputContainer.scrollHeight, behavior: 'smooth' });
+						responsiveVoice.speak(msg, "Korean Female", { onend: readMessage });
+						i++;
+					};
 
-							responsiveVoice.speak("로그인 없는 편안함 록몬스GPT입니다", "Korean Female");
-						}
-
-						// Check if input is "누가 만들었어?"
-						if (input === "누가 만들었어?") {
-							const responseDiv = document.createElement("div");
-							responseDiv.classList.add("message");
-							responseDiv.classList.add("bot-message");
-							const responseText = document.createElement("p");
-							responseText.innerText = "록시님이 만들었습니다";
-							responseDiv.appendChild(responseText);
-							outputContainer.appendChild(responseDiv);
-							outputContainer.scrollTo({ top: outputContainer.scrollHeight, behavior: 'smooth' });
-
-							responsiveVoice.speak("록시님이 만들었습니다", "Korean Female");
-						}
-
-						// Check if input is "록몬스가 뭐야?"
-						if (input === "록몬스가 뭐야?") {
-							const responseDiv = document.createElement("div");
-							responseDiv.classList.add("message");
-							responseDiv.classList.add("bot-message");
-							const responseText = document.createElement("p");
-							responseText.innerText = "록몬스는 인공지능 챗봇입니다";
-							responseDiv.appendChild(responseText);
-							outputContainer.appendChild(responseDiv);
-							outputContainer.scrollTo({ top: outputContainer.scrollHeight, behavior: 'smooth' });
-
-							responsiveVoice.speak("록몬스는 인공지능 챗봇입니다", "Korean Female");
-						}
-					}
-
-					outputContainer.scrollTo({ top: outputContainer.scrollHeight, behavior: 'smooth' });
+					readMessage();
 				} catch (error) {
 					console.error(error);
 				}
@@ -186,10 +163,6 @@
 
 			function sleep(ms) {
 				return new Promise(resolve => setTimeout(resolve, ms));
-			}
-
-			function continueSpeaking() {
-				responsiveVoice.resume();
 			}
 
 			document.querySelector("#clear").addEventListener("click", function () {
